@@ -1,0 +1,15 @@
+---
+# OS
+ansible_os_family: 
+
+# The directory into which Transformer will be downloaded for setup.
+download_dir: /tmp
+
+# The destination install directory into which Transformer and Spark
+dest_dir: /opt
+
+# Transformer version and download information.
+transformer_version: 3.14.0
+
+# Spark version 
+spark_version: spark-2.4.6

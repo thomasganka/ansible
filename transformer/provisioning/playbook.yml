@@ -1,0 +1,101 @@
+---
+- hosts: transformer
+  become: true
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Update yum cache if needed.
+      yum: update_cache=yes
+      when: ansible_os_family == "EL" and
+            ansible_distribution_version == "7"
+
+
+  tasks:
+    - name: Install Java.
+      yum: name=java-1.8.0-openjdk state=latest
+    
+    - name: Install Python3.
+      yum:
+        name:
+          - epel-release
+          - python36
+          - python36-pip
+          - gcc
+        state: latest
+    
+    - name: Download Spark
+      get_url:
+        url: "https://downloads.apache.org/spark/{{ spark_version }}/{{ spark_version }}-bin-hadoop2.7.tgz"
+        dest: "{{ download_dir }}/{{ spark_version }}-bin-hadoop2.7.tgz"
+
+    - name: Download Transformer.
+      get_url:
+        url: "https://archives.streamsets.com/transformer/{{ transformer_version }}/rpm/el7/streamsets-transformer-{{ transformer_version }}-el7-all-rpms.tar"
+        dest: "{{ download_dir }}/streamsets-transformer-{{ transformer_version }}-el7-all-rpms.tar"
+
+    - name: Expand Spark.
+      unarchive:
+        src: "{{ download_dir }}/{{ spark_version }}-bin-hadoop2.7.tgz"
+        dest: "{{ dest_dir }}"
+        remote_src: true
+
+    - name: Expand Transformer.
+      unarchive:
+        src: "{{ download_dir }}/streamsets-transformer-{{ transformer_version }}-el7-all-rpms.tar"
+        dest: "{{ dest_dir }}"
+        remote_src: true
+
+    - name: install transformer rpm from a local file
+      yum:
+        name: "{{ dest_dir }}/streamsets-transformer-{{ transformer_version }}-el7-all-rpms/streamsets-transformer-{{ transformer_version }}-1.noarch.rpm"
+        state: present
+    
+    - name: Set JAVA_HOME
+      lineinfile: 
+        dest: /etc/environment 
+        state: present
+        regexp: '^JAVA_HOME'
+        line: 'JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.252.b09-2.el8_1.x86_64/jre'
+    
+    - name: Set SPARK_HOME
+      lineinfile: 
+        dest: /etc/environment 
+        state: present
+        regexp: '^SPARK_HOME'
+        line: 'SPARK_HOME=/opt/{{ spark_version }}-bin-hadoop2.7'
+
+    - name: Set PYTHONPATH
+      lineinfile: 
+        dest: /etc/environment 
+        state: present
+        regexp: '^PYTHONPATH'
+        line: 'PYTHONPATH=$SPARK_HOME/python/lib/py4j-0.10.7-src.zip:$SPARK_HOME/python:$SPARK_HOME/bin/pyspark:$PYTHONPATH'
+
+    - name: Set PYSPARK_PYTHON
+      lineinfile: 
+        dest: /etc/environment 
+        state: present
+        regexp: '^PYSPARK_PYTHON'
+        line: 'PYSPARK_PYTHON=/usr/bin/python3'
+
+    - name: Set PYSPARK_DRIVER_PYTHON
+      lineinfile: 
+        dest: /etc/environment 
+        state: present
+        regexp: '^PYSPARK_DRIVER_PYTHON'
+        line: 'PYSPARK_DRIVER_PYTHON=/usr/bin/python3'
+
+    - name: Change /etc/transformer to transformer user
+      file: 
+        path: /etc/transformer 
+        owner: transformer
+        group: transformer
+
+    - name: import SPARK_HOME to systemctl
+      command: systemctl import-environment SPARK_HOME
+      become: yes
+
+    - name: Ensure Transformer is started and enabled on boot.
+      service: name=transformer state=started enabled=yes

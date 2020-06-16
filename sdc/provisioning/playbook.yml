@@ -1,0 +1,51 @@
+---
+- hosts: sdc
+  become: true
+
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Update yum cache if needed.
+      yum: update_cache=yes
+
+  tasks:
+    - name: Install Java.
+      yum: name=java-1.8.0-openjdk state=latest
+    
+    - name: Install Python3.
+      yum:
+        name:
+          - epel-release
+          - python3
+          - gcc
+        state: latest
+
+    - name: Download SDC
+      get_url: 
+        url: "https://s3-us-west-2.amazonaws.com/archives.streamsets.com/datacollector/{{ sdc_version }}/rpm/el7/activation/streamsets-datacollector-{{ sdc_version }}-el7-activation-all-rpms.tar"
+        dest: "{{ download_dir }}/streamsets-datacollector-{{ sdc_version }}-el7-all-rpms.tar"
+
+    - name: Expand SDC
+      unarchive:
+        src: "{{ download_dir }}/streamsets-datacollector-{{ sdc_version }}-el7-all-rpms.tar"
+        dest: "{{ dest_dir }}"
+        remote_src: true
+
+    - name: install sdc rpm from a local file
+      yum:
+        name: "{{ dest_dir }}/streamsets-datacollector-{{ sdc_version }}-el7-activation-all-rpms/streamsets-datacollector-{{ sdc_version }}-1.noarch.rpm"
+        state: present
+    
+    - name: Set JAVA_HOME
+      lineinfile: 
+        dest: /etc/environment 
+        state: present
+        regexp: '^JAVA_HOME'
+        line: 'JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.252.b09-2.el8_1.x86_64/jre'
+
+ #   - name: register to SCH
+ #     command: bin/streamsets sch register -l http://sch-01:18631 -u tom@streamsets -p streamsets
+
+    - name: Ensure SDC is started and enabled on boot.
+      service: name=sdc state=started enabled=yes
