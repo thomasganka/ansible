@@ -39,6 +39,8 @@ Note: *If there are any errors during the course of running `vagrant up`, and it
 ## Additional Notes
 
   - To shut down the virtual machine, enter `vagrant halt` in the Terminal in the same folder that has the `Vagrantfile`. To destroy it completely (if you want to save a little disk space, or want to rebuild it from scratch with `vagrant up` again), type in `vagrant destroy`.
+  
+  - Currently the playbooks only support EL7, but support for other Linux OSes should be soon
 
 ## About the Author
 
