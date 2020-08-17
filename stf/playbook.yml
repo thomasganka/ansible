@@ -1,0 +1,59 @@
+---
+- name: Configure SDK and STF with dependencies
+  hosts: all
+  gather_facts: false
+  become: true
+  pre_tasks:
+  - name: Update yum cache if needed.
+    yum: update_cache=yes
+  tasks:
+    - name: Install git
+      yum: name=git state=latest
+
+    - name: Install Java.
+      yum: name=java-1.8.0-openjdk state=latest
+    
+    - name: Install Python3.
+      yum:
+        name:
+          - epel-release
+          - python3
+          - gcc
+          - haveged
+          - python3-pip
+          - python3-venv
+          - ca-certificates
+        state: latest
+
+    - name: Download Docker
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/yum.repos.d/jenkins.repo
+
+    - name: Import Jenkins Key
+      rpm_key:
+        state: present
+        key: http://pkg.jenkins.io/redhat-stable/jenkins.io.key
+
+    - name: Install Jenkins
+      yum:
+        name: jenkins
+        state: present
+
+    - name: Start & Enable Jenkins
+      systemd:
+        name: jenkins
+        state: started
+        enabled: true
+
+    - name: Sleep for 30 seconds and continue with play
+      wait_for: timeout=30
+
+    - name: Get init password Jenkins
+      shell: cat /var/lib/jenkins/secrets/initialAdminPassword
+      changed_when: false
+      register: result
+
+    - name: Print init password Jenkins
+      debug:
+        var: result.stdout

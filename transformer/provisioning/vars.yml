@@ -1,7 +1,10 @@
 ---
+<<<<<<< HEAD
 # OS
 ansible_os_family: 
 
+=======
+>>>>>>> 4577bb1550158d0a97f74f9127fda29f937b463d
 # The directory into which Transformer will be downloaded for setup.
 download_dir: /tmp
 
@@ -9,7 +12,11 @@ download_dir: /tmp
 dest_dir: /opt
 
 # Transformer version and download information.
+<<<<<<< HEAD
 transformer_version: 3.14.0
 
 # Spark version 
 spark_version: spark-2.4.6
+=======
+transformer_version: 3.14.0
+>>>>>>> 4577bb1550158d0a97f74f9127fda29f937b463d

@@ -11,7 +11,6 @@
       when: ansible_os_family == "EL" and
             ansible_distribution_version == "7"
 
-
   tasks:
     - name: Install Java.
       yum: name=java-1.8.0-openjdk state=latest
@@ -20,8 +19,7 @@
       yum:
         name:
           - epel-release
-          - python36
-          - python36-pip
+          - python3
           - gcc
         state: latest
     
