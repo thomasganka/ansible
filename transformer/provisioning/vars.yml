@@ -1,7 +1,4 @@
 ---
-# OS
-ansible_os_family: 
-
 # The directory into which Transformer will be downloaded for setup.
 download_dir: /tmp
 
