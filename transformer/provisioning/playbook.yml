@@ -8,8 +8,8 @@
   pre_tasks:
     - name: Update yum cache if needed.
       yum: update_cache=yes
-      when: ansible_os_family == "EL" and
-            ansible_distribution_version == "7"
+#      when: ansible_os_family == "EL" and
+#            ansible_distribution_version == "7"
 
   tasks:
     - name: Install Java.
